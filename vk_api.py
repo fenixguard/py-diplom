@@ -71,12 +71,6 @@ def get_groups(user_id) -> set:
 def get_group_info(groups) -> list:
     groups_info = list()
     method_name = "groups.getById"
-    # parameter = "group_ids="
-    # for group_id in groups:
-    #     parameter += f"{group_id},"
-    # parameters = f"{parameter[:-1]}&fields=id,name,members_count"
-    #
-    # payload = f"{parameters}&{VK_TOKEN}&{VK_API_VERSION}"
     groups_id = ','.join(str(group_id) for group_id in groups)
     payload = {
         "group_ids": groups_id,
