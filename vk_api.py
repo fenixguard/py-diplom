@@ -5,15 +5,18 @@ from datetime import datetime
 import requests
 
 VK_URL = 'https://api.vk.com/method/'
-VK_TOKEN = 'access_token=958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008'
-VK_API_VERSION = 'v=5.103'
+VK_TOKEN = '958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008'
+VK_API_VERSION = 5.103
 
 
 def get_user_id(user_id) -> int:
     method_name = "users.get"
-    parameters = f"user_ids={user_id}"
 
-    payload = f"{parameters}&{VK_TOKEN}&{VK_API_VERSION}"
+    payload = {
+        "user_ids": user_id,
+        "access_token": VK_TOKEN,
+        "v": VK_API_VERSION
+    }
     vk_url = f"{VK_URL}{method_name}"
     time.sleep(0.5)
     print(f"{datetime.now()} - Получение числового идентификатора пользователя {user_id}")
@@ -24,9 +27,13 @@ def get_user_id(user_id) -> int:
 
 def get_friends(user_id) -> list:
     method_name = "friends.get"
-    parameters = f"user_id={user_id}"
 
-    payload = f"{parameters}&{VK_TOKEN}&{VK_API_VERSION}"
+    payload = {
+        "user_id": user_id,
+        "access_token": VK_TOKEN,
+        "v": VK_API_VERSION
+    }
+
     vk_url = f"{VK_URL}{method_name}"
     time.sleep(0.5)
     print(f"{datetime.now()} - Получение списка друзей пользователя {user_id}")
@@ -41,9 +48,14 @@ def get_friends(user_id) -> list:
 
 def get_groups(user_id) -> set:
     method_name = "users.getSubscriptions"
-    parameters = f"user_id={user_id}&extended=0"
 
-    payload = f"{parameters}&{VK_TOKEN}&{VK_API_VERSION}"
+    payload = {
+        "user_id": user_id,
+        "extended": 0,
+        "access_token": VK_TOKEN,
+        "v": VK_API_VERSION
+    }
+
     vk_url = f"{VK_URL}{method_name}"
     time.sleep(0.5)
     print(f"{datetime.now()} - Получение списка групп пользователя {user_id}")
@@ -59,12 +71,20 @@ def get_groups(user_id) -> set:
 def get_group_info(groups) -> list:
     groups_info = list()
     method_name = "groups.getById"
-    parameter = "group_ids="
-    for group_id in groups:
-        parameter += f"{group_id},"
-    parameters = f"{parameter[:-1]}&fields=id,name,members_count"
+    # parameter = "group_ids="
+    # for group_id in groups:
+    #     parameter += f"{group_id},"
+    # parameters = f"{parameter[:-1]}&fields=id,name,members_count"
+    #
+    # payload = f"{parameters}&{VK_TOKEN}&{VK_API_VERSION}"
+    groups_id = ','.join(str(group_id) for group_id in groups)
+    payload = {
+        "group_ids": groups_id,
+        "fields": "id,name,members_count",
+        "access_token": VK_TOKEN,
+        "v": VK_API_VERSION
+    }
 
-    payload = f"{parameters}&{VK_TOKEN}&{VK_API_VERSION}"
     vk_url = f"{VK_URL}{method_name}"
     time.sleep(0.5)
     print(f"{datetime.now()} - Получение информации о группах")
