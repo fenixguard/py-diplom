@@ -1,6 +1,7 @@
 import json
 import time
 from datetime import datetime
+from tqdm import tqdm
 
 import requests
 
@@ -58,7 +59,6 @@ def get_groups(user_id) -> set:
 
     vk_url = f"{VK_URL}{method_name}"
     time.sleep(0.5)
-    print(f"{datetime.now()} - Получение списка групп пользователя {user_id}")
     response = requests.get(vk_url, params=payload)
     json_dict = response.json()
     try:
@@ -100,7 +100,7 @@ def main():
     friends = get_friends(user_id)
     target_groups = get_groups(user_id)
 
-    for friend in friends:
+    for friend in tqdm(friends, desc=f"{datetime.now()} - Получение списка групп друзей"):
         user_group = get_groups(friend)
         if user_group is not None:
             target_groups = target_groups - user_group
