@@ -20,9 +20,9 @@ def get_user_id(user_id) -> int:
     }
     vk_url = f"{VK_URL}{method_name}"
     time.sleep(0.5)
-    print(f"{datetime.now()} - Получение числового идентификатора пользователя {user_id}")
     response = requests.get(vk_url, params=payload)
     json_dict = response.json()
+    print(f"{datetime.now()} - Идентификатор пользователя '{json_dict['response'][0]['id']}'")
     return json_dict['response'][0]['id']
 
 
@@ -135,8 +135,7 @@ def get_group_info(groups) -> list:
 
 def main():
     user_id = input("Введите ID пользователя (числовой либо буквенный): ")
-    if user_id.isalpha():
-        user_id = get_user_id(user_id)
+    user_id = get_user_id(user_id)
     friends = get_friends(user_id)
     target_groups = get_groups(user_id)
 
