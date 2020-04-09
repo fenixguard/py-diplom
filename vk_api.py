@@ -47,6 +47,45 @@ def get_friends(user_id) -> list:
         return json_dict['response']['items']
 
 
+def get_groups_execute(user_ids: list, target_user_groups: set):
+    method_name = "execute"
+    vk_url = f"{VK_URL}{method_name}"
+    max_requests = 25  # Максимальное количество обращений к API внутри execute
+    chop_user_ids = [user_ids[x: max_requests + x] for x in range(0, len(user_ids), max_requests)]
+    json_dict = list()
+    for chop_user_id in tqdm(chop_user_ids, desc="Получение списка групп всех друзей"):
+
+        response = requests.get(vk_url, params=
+        {
+            "code": f"var count = {len(chop_user_id)};"
+                    "var groups = [];"
+                    f"var list_ids = {chop_user_id};"
+                    "var list_count = 0;"
+                    "while (count)"
+                        "{"
+                            "groups.push(API.users.getSubscriptions({\"user_id\": list_ids[list_count], \"extended\": 0}));"
+                            "count = count - 1;"
+                            "list_count = list_count + 1;"
+                        "}"
+                    "return groups;",
+            "access_token": VK_TOKEN,
+            "v": VK_API_VERSION
+        })
+        json_dict.append(response.json()['response'])
+
+        # Таймер на случай, если быстро отработает запрос, и будет более 3 execute в секунду,
+        # хотя на практике у меня не удалось такое сделать, поэтому закомментил его
+        # time.sleep(0.5)
+
+    for items in json_dict:
+        for item in items:
+            if item:
+                target_user_groups = target_user_groups - set(item['groups']['items'])
+            else:
+                continue
+    return target_user_groups
+
+
 def get_groups(user_id) -> set:
     method_name = "users.getSubscriptions"
 
@@ -58,7 +97,8 @@ def get_groups(user_id) -> set:
     }
 
     vk_url = f"{VK_URL}{method_name}"
-    time.sleep(0.5)
+    print(f"{datetime.now()} - Получение списка групп пользователя {user_id}")
+
     response = requests.get(vk_url, params=payload)
     json_dict = response.json()
     try:
@@ -100,10 +140,8 @@ def main():
     friends = get_friends(user_id)
     target_groups = get_groups(user_id)
 
-    for friend in tqdm(friends, desc=f"{datetime.now()} - Получение списка групп друзей"):
-        user_group = get_groups(friend)
-        if user_group is not None:
-            target_groups = target_groups - user_group
+    target_groups = get_groups_execute(friends, target_groups)
+
     result = get_group_info(list(target_groups))
     with open("groups.json", "w", encoding="utf-8") as ff:
         json.dump(result, ff, ensure_ascii=False, indent=4)
